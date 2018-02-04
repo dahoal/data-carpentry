@@ -1,11 +1,12 @@
 import argparse
 import numpy
+import iris
 iris.FUTURE.netcdf_promote = True
 import matplotlib.pyplot as plt
 import iris.plot as iplt
 import iris.coord_categorisation
 import cmocean
-import iris
+
 
 
 def read_data(fname, month):
@@ -45,6 +46,19 @@ def plot_data(cube, month, gridlines=False):
     title = '%s precipitation climatology (%s)' %(cube.attributes['model_id'], month)
     plt.title(title)
 
+def apply_mask(cube,sftlf_cube,realm):
+    """Apply land or ocean mask to data."""
+    #sftlf_cube = iris.load_cube('data/sftlf_fx_ACCESS1-3_historical_r0i0p0.nc', 'land_area_fraction')
+    if realm == 'land':
+        mask = numpy.where(sftlf_cube.data < 50, True, False)
+    else:
+        mask = numpy.where(sftlf_cube.data > 50, True, False)
+
+    cube.data = numpy.ma.asarray(cube.data)
+    cube.data.mask = mask
+
+    return cube
+
 
 def main(inargs):
     """Run the program."""
@@ -52,6 +66,11 @@ def main(inargs):
     cube = read_data(inargs.infile, inargs.month)
     cube = convert_pr_units(cube)
     clim = cube.collapsed('time', iris.analysis.MEAN)
+    if inargs.mask:
+        sftlf_file, realm = inargs.mask
+        sftlf_cube = iris.load_cube(sftlf_file, 'land_area_fraction')
+        clim = apply_mask(clim, sftlf_cube, realm)
+
     plot_data(clim, inargs.month)
     plt.savefig(inargs.outfile)
 
@@ -68,6 +87,9 @@ if __name__ == '__main__':
                         help="Include gridlines on the plot")
     parser.add_argument("--cbar_levels",type=float,nargs='*',default=None,
                         help='list of levels / tick marks to appear on the colourbar')
+    parser.add_argument("--mask", type=str, nargs=2,
+                    metavar=('SFTLF_FILE', 'REALM'), default=None,
+                    help='Apply a land or ocean mask (specify the realm to mask)')
 
     args = parser.parse_args()
 
