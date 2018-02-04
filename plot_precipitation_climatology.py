@@ -22,7 +22,7 @@ def read_data(fname, month):
 
 def convert_pr_units(cube):
     """Convert kg m-2 s-1 to mm day-1"""
-
+    assert cube.units == 'kg m-2 s-1',"Programm assumed using input unit 'kg m-2 s-1'"
     cube.data = cube.data * 86400
     cube.units = 'mm/day'
 
