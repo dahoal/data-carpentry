@@ -57,7 +57,7 @@ def main(inargs):
 
 
 if __name__ == '__main__':
-    description='Plot the precipitation climatology.'
+    description='Plot the precipitation climatology fo a given month.'
     parser = argparse.ArgumentParser(description=description)
 
     parser.add_argument("infile", type=str,
