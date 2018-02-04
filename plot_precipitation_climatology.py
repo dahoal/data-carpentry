@@ -6,7 +6,18 @@ import matplotlib.pyplot as plt
 import iris.plot as iplt
 import iris.coord_categorisation
 import cmocean
+import provenance
 
+def write_metadata(outfile, previous_history):
+    """Write the history record to file."""
+
+    new_history = provenance.get_history_record()
+    complete_history = '%s \n %s' %(new_history, previous_history)
+
+    fname, extension = outfile.split('.')
+    metadata_file = open(fname+'.txt', 'w')
+    metadata_file.write(complete_history)
+    metadata_file.close()
 
 
 def read_data(fname, month):
@@ -73,6 +84,7 @@ def main(inargs):
 
     plot_data(clim, inargs.month)
     plt.savefig(inargs.outfile)
+    write_metadata(inargs.outfile, cube.attributes['history'])
 
 
 if __name__ == '__main__':
